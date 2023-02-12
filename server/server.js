@@ -49,6 +49,7 @@ connection.once('open', () => {
 
 const userSchema = new mongoose.Schema ({
     email: String,
+    username: String,
     password: String,
     googleId: String,
     secret: String
@@ -81,13 +82,14 @@ passport.use(new GoogleStrategy({
 
   },
   function(accessToken, refreshToken, profile, cb) {
-    User.findOrCreate( {googleId : profile.id}, function( err, foundUser ){
+    User.findOrCreate( {googleId : profile.id, username: profile.displayName}, function( err, foundUser ){
         if( !err ){                                                          //Check for any errors
             if( foundUser ){                                          // Check for if we found any users
                 return cb( null, foundUser );                  //Will return the foundUser
             }else {                                                        //Create a new User
                 const newUser = new User({
-                    googleId : profile.id
+                    googleId : profile.id,
+                    username : profile.displayName
                 });
                 newUser.save( function( err ){
                     if(!err){
@@ -115,7 +117,7 @@ app.get("/register", function(req, res){
   });
 app.post("/register", function(req, res){
 
-    User.register({username: req.body.username}, req.body.password, function(err, user){
+    User.register({username: req.body.username, email: req.body.email}, req.body.password, function(err, user){
       if (err) {
         console.log(err);
         res.redirect("/register");
